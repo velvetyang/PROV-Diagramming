@@ -1,0 +1,9 @@
+{
+    "cSpell.words": [
+        "mxgraph",
+        "antv"
+    ],
+    "search.exclude": {
+        ".history/": true,
+    }
+}
