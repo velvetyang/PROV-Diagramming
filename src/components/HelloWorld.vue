@@ -14,22 +14,22 @@
         </div>
       </div>
       <div class="canvas-card" @dragover="handleDragOver" @drop="handleDrop">
-        <div id="container" />
+          <div id="container" />
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { Graph } from '@antv/x6';
-import img from '~/assets/logo.png'; // 确保图片路径正确
+import { ref, onMounted } from "vue";
+import { Graph } from "@antv/x6";
+import img from "~/assets/logo.png"; // 确保图片路径正确
 
 const moduleList = ref([
-  { id: 1, name: 'node1', img: img },
-  { id: 8, name: 'node2', img: img },
-  { id: 2, name: 'node3', img: img },
-  { id: 3, name: 'node4', img: img },
+  { id: 1, name: "node1", img: img },
+  { id: 8, name: "node2", img: img },
+  { id: 2, name: "node3", img: img },
+  { id: 3, name: "node4", img: img },
 ]);
 
 const graph = ref(null);
@@ -50,10 +50,18 @@ const handleDragOver = (e) => {
 const handleDrop = (e) => {
   e.preventDefault();
   if (draggedItem) {
-    const containerRect = document.querySelector('.canvas-card').getBoundingClientRect();
+    const containerRect = document
+      .querySelector(".canvas-card")
+      .getBoundingClientRect();
     const x = e.clientX - containerRect.left;
     const y = e.clientY - containerRect.top;
-    addHandleNode(x, y, new Date().getTime(), draggedItem.img, draggedItem.name);
+    addHandleNode(
+      x,
+      y,
+      new Date().getTime(),
+      draggedItem.img,
+      draggedItem.name
+    );
     draggedItem = null; // 清除当前拖动的节点
   }
 };
@@ -61,7 +69,7 @@ const handleDrop = (e) => {
 const addHandleNode = (x, y, id, image, name) => {
   graph.value.addNode({
     id: id,
-    shape: 'image',
+    shape: "image",
     x: x,
     y: y,
     width: 60,
@@ -69,21 +77,21 @@ const addHandleNode = (x, y, id, image, name) => {
     imageUrl: image,
     attrs: {
       body: {
-        stroke: '#ffa940',
-        fill: '#ffd591',
+        stroke: "#ffa940",
+        fill: "#ffd591",
       },
       label: {
         textWrap: {
           width: 90,
           text: name,
         },
-        fill: 'black',
+        fill: "black",
         fontSize: 12,
         refX: 0.5,
-        refY: '100%',
+        refY: "100%",
         refY2: 4,
-        textAnchor: 'middle',
-        textVerticalAnchor: 'top',
+        textAnchor: "middle",
+        textVerticalAnchor: "top",
       },
     },
     ports: {
@@ -94,15 +102,15 @@ const addHandleNode = (x, y, id, image, name) => {
       },
       items: [
         {
-          group: 'group1',
-          id: 'port1',
+          group: "group1",
+          id: "port1",
           attrs: {
             circle: {
               r: 6,
               magnet: true,
-              stroke: '#ffffff',
+              stroke: "#ffffff",
               strokeWidth: 2,
-              fill: '#5F95FF',
+              fill: "#5F95FF",
             },
           },
         },
@@ -231,12 +239,29 @@ const nodeAddEvent = () => {
 };
 
 const initGraph = () => {
-  const container = document.getElementById('container');
+  const container = document.getElementById("container");
   graph.value = new Graph({
     container: container,
     width: container.offsetWidth,
     height: container.offsetHeight,
-    background: false,
+    background: {
+        color: '#FAF9F6',
+      },
+    grid: {
+        visible: true,
+        type: 'doubleMesh',
+        args: [
+          {
+            color: '#eee', // 主网格线颜色
+            thickness: 2, // 主网格线宽度
+          },
+          {
+            color: '#ddd', // 次网格线颜色
+            thickness: 3, // 次网格线宽度
+            factor: 5, // 主次网格线间隔
+          },
+        ],
+      },
     snapline: true,
     connecting: {
       snap: true,
@@ -246,20 +271,20 @@ const initGraph = () => {
       highlight: true,
       highlighting: {
         magnetAdsorbed: {
-          name: 'stroke',
+          name: "stroke",
           args: {
             attrs: {
-              fill: '#5F95FF',
-              stroke: '#5F95FF',
+              fill: "#5F95FF",
+              stroke: "#5F95FF",
             },
           },
         },
       },
       router: {
-        name: 'orth',
+        name: "orth",
       },
       connector: {
-        name: 'rounded',
+        name: "rounded",
         args: {
           radius: 8,
         },
@@ -271,18 +296,9 @@ const initGraph = () => {
     mousewheel: {
       enabled: true,
       zoomAtMousePosition: true,
-      modifiers: 'ctrl',
+      modifiers: "ctrl",
       minScale: 0.5,
       maxScale: 3,
-    },
-    grid: {
-      type: 'dot',
-      size: 20,
-      visible: true,
-      args: {
-        color: '#a0a0a0',
-        thickness: 2,
-      },
     },
   });
   nodeAddEvent();
@@ -300,10 +316,10 @@ onMounted(() => {
     width: 100%;
     height: 100%;
     color: black;
-    padding-top: 20px;
+    padding-top: 5px;
     .menu-list {
       height: 100%;
-      width: 300px;
+      width: 150px;
       padding: 0 10px;
       box-sizing: border-box;
       display: flex;
@@ -333,12 +349,12 @@ onMounted(() => {
     }
     .canvas-card {
       width: 1700px;
-      height: 750px;
+      height: 600px;
       box-sizing: border-box;
       > div {
-        width: 1400px;
-        height: 750px;
-        border: 2px dashed #2149ce;
+        width: 100%;
+        height: 100%;
+        border: 2px dashed #a0a0a0;
       }
     }
   }
