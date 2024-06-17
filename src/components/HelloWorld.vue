@@ -14,7 +14,7 @@
         </div>
       </div>
       <div class="canvas-card" @dragover="handleDragOver" @drop="handleDrop">
-          <div id="container" />
+        <div id="container" />
       </div>
     </div>
   </div>
@@ -23,13 +23,15 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { Graph } from "@antv/x6";
-import img from "~/assets/logo.png"; // 确保图片路径正确
+import rectImg from '~/assets/rect.svg';
+import ellipseImg from '~/assets/ellipse.svg';
+import logoImg from '~/assets/logo.png';
 
 const moduleList = ref([
-  { id: 1, name: "node1", img: img },
-  { id: 8, name: "node2", img: img },
-  { id: 2, name: "node3", img: img },
-  { id: 3, name: "node4", img: img },
+  { id: 1, name: "node1", img: rectImg, shape: "rect", width: 100 },
+  { id: 2, name: "node2", img: ellipseImg, shape: "ellipse", width: 150 },
+  { id: 3, name: "node3", img: logoImg, shape: "image", width: 100 },
+  { id: 4, name: "node4", img: logoImg, shape: "image", width: 100 },
 ]);
 
 const graph = ref(null);
@@ -55,24 +57,37 @@ const handleDrop = (e) => {
       .getBoundingClientRect();
     const x = e.clientX - containerRect.left;
     const y = e.clientY - containerRect.top;
+    // 判定节点形状
+    let shape = "rect"; // 默认形状
+    if (draggedItem.name === "node1") {
+      shape = "rect";
+    } else if (draggedItem.name === "node2") {
+      shape = "ellipse";
+    } else if (draggedItem.name === "node3") {
+      shape = "image";
+    }
+
     addHandleNode(
       x,
       y,
       new Date().getTime(),
+      draggedItem.shape,
       draggedItem.img,
+      draggedItem.width,
       draggedItem.name
     );
     draggedItem = null; // 清除当前拖动的节点
   }
 };
 
-const addHandleNode = (x, y, id, image, name) => {
+//添加节点到画布上
+const addHandleNode = (x, y, id, shape, image, width, name) => {
   graph.value.addNode({
     id: id,
-    shape: "image",
+    shape: shape,
     x: x,
     y: y,
-    width: 60,
+    width: width,
     height: 60,
     imageUrl: image,
     attrs: {
@@ -88,8 +103,8 @@ const addHandleNode = (x, y, id, image, name) => {
         fill: "black",
         fontSize: 12,
         refX: 0.5,
-        refY: "100%",
-        refY2: 4,
+        refY: 0.5,
+        refY2: -4,
         textAnchor: "middle",
         textVerticalAnchor: "top",
       },
@@ -97,7 +112,8 @@ const addHandleNode = (x, y, id, image, name) => {
     ports: {
       groups: {
         group1: {
-          position: [30, 30],
+          position: [width/2, 30], // 节点标志定位
+          // args: { x: '50%', y: '50%' } // 居中位置
         },
       },
       items: [
@@ -120,6 +136,46 @@ const addHandleNode = (x, y, id, image, name) => {
   });
 };
 
+//编辑节点标签
+const editNodeLabel = (node) => {
+  const currentLabel = node.attr("label/textWrap/text");
+  const input = document.createElement("input");
+  input.value = currentLabel;
+
+  const nodePosition = node.position();
+  const labelAttrs = node.attr("label");
+  const labelX = labelAttrs.refX * node.size().width + 80;
+  const labelY = labelAttrs.refY * node.size().height;
+
+  input.style.position = "absolute";
+  input.style.left = `${nodePosition.x + labelX - input.offsetWidth / 2}px`; // 调整left值
+  input.style.top = `${nodePosition.y + labelY}px`; // 调整top值
+  input.style.zIndex = 1000;
+  input.style.width = "100px"; // 可以根据需要调整输入框的宽度
+  input.style.fontSize = "12px"; // 确保字体大小与节点标签一致
+  document.body.appendChild(input);
+
+  input.focus();
+
+  input.onblur = () => {
+    node.setAttrs({
+      label: {
+        textWrap: {
+          text: input.value,
+        },
+      },
+    });
+    document.body.removeChild(input);
+  };
+
+  input.onkeydown = (e) => {
+    if (e.key === "Enter") {
+      input.blur();
+    }
+  };
+};
+
+//鼠标移入节点再显示连接桩
 const nodeAddEvent = () => {
   const container = document.getElementById("container");
   const changePortsVisible = (visible) => {
@@ -186,7 +242,7 @@ const nodeAddEvent = () => {
           },
         },
         {
-          name: "button-remove",
+          name: "button-remove", //删除按钮
           args: {
             x: "100%",
             y: 0,
@@ -198,6 +254,10 @@ const nodeAddEvent = () => {
         },
       ]);
     }
+  });
+
+  graph.value.on("node:contextmenu", ({ node }) => {
+    editNodeLabel(node);
   });
 
   // 连线绑定悬浮事件
@@ -245,29 +305,32 @@ const initGraph = () => {
     width: container.offsetWidth,
     height: container.offsetHeight,
     background: {
-        color: '#FAF9F6',
-      },
+      color: "#FAF9F6",
+    },
     grid: {
-        visible: true,
-        type: 'doubleMesh',
-        args: [
-          {
-            color: '#eee', // 主网格线颜色
-            thickness: 2, // 主网格线宽度
-          },
-          {
-            color: '#ddd', // 次网格线颜色
-            thickness: 3, // 次网格线宽度
-            factor: 5, // 主次网格线间隔
-          },
-        ],
-      },
+      visible: true,
+      type: "doubleMesh",
+      args: [
+        {
+          color: "#eee", // 主网格线颜色
+          thickness: 2, // 主网格线宽度
+        },
+        {
+          color: "#ddd", // 次网格线颜色
+          thickness: 3, // 次网格线宽度
+          factor: 5, // 主次网格线间隔
+        },
+      ],
+    },
     snapline: true,
+    translating: {
+      restrict: true, //节点移动时不可以移出画布
+    },
     connecting: {
       snap: true,
       allowBlank: false,
       allowMulti: true,
-      allowLoop: true,
+      allowLoop: false, // 禁止创建循环连线
       highlight: true,
       highlighting: {
         magnetAdsorbed: {

@@ -8,7 +8,7 @@ import { toggleDark } from "~/composables";
     <div class="flex-grow" />
     <el-sub-menu index="2">
       <template #title>File</template>
-      <el-menu-item index="2-1">item one</el-menu-item>
+      <el-menu-item index="2-1">Save</el-menu-item>
       <el-menu-item index="2-2">item two</el-menu-item>
       <el-menu-item index="2-3">item three</el-menu-item>
       <el-sub-menu index="2-4">
