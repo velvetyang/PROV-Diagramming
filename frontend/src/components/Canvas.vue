@@ -1,18 +1,6 @@
 <template>
   <div class="dashboard-container">
     <div class="antvBox">
-      <div class="menu-list">
-        <div
-          v-for="item in moduleList"
-          :key="item.id"
-          draggable="true"
-          @dragstart="handleDragStart($event, item)"
-          @dragend="handleDragEnd($event, item)"
-        >
-          <img :src="item.img" alt="" />
-          <p>{{ item.name }}</p>
-        </div>
-      </div>
       <div class="canvas-card" @dragover="handleDragOver" @drop="handleDrop">
         <div id="container" />
       </div>
@@ -20,29 +8,24 @@
   </div>
 </template>
 
-<script setup>
+<script setup>  
 import { ref, onMounted } from "vue";
-import { Graph } from "@antv/x6";
-import rectImg from '~/assets/rect.svg';
-import ellipseImg from '~/assets/ellipse.svg';
-import logoImg from '~/assets/logo.png';
+import { useMainStore } from "~/store/index.js";
+import { Graph } from "@antv/x6"
 
-const moduleList = ref([
-  { id: 1, name: "node1", img: rectImg, shape: "rect", width: 100 },
-  { id: 2, name: "node2", img: ellipseImg, shape: "ellipse", width: 150 },
-  { id: 3, name: "node3", img: logoImg, shape: "image", width: 100 },
-  { id: 4, name: "node4", img: logoImg, shape: "image", width: 100 },
-]);
+const store = useMainStore();
 
+const moduleList = store.moduleList;
 const graph = ref(null);
-let draggedItem = null;
 const curSelectNode = ref(null);
+
 const handleDragStart = (e, item) => {
-  draggedItem = item;
+  store.setDraggedItem( item ); 
 };
 
+
 const handleDragEnd = (e, item) => {
-  // 这里不再需要执行任何操作
+  store.clearDraggedItem();
 };
 
 const handleDragOver = (e) => {
@@ -51,37 +34,57 @@ const handleDragOver = (e) => {
 
 const handleDrop = (e) => {
   e.preventDefault();
-  if (draggedItem) {
+  if (store.draggedItem) {
     const containerRect = document
       .querySelector(".canvas-card")
       .getBoundingClientRect();
     const x = e.clientX - containerRect.left;
     const y = e.clientY - containerRect.top;
-    // 判定节点形状
-    let shape = "rect"; // 默认形状
-    if (draggedItem.name === "node1") {
-      shape = "rect";
-    } else if (draggedItem.name === "node2") {
-      shape = "ellipse";
-    } else if (draggedItem.name === "node3") {
-      shape = "image";
-    }
+    const { shape, img, width, name, path } = store.draggedItem;
 
-    addHandleNode(
-      x,
-      y,
-      new Date().getTime(),
-      draggedItem.shape,
-      draggedItem.img,
-      draggedItem.width,
-      draggedItem.name
-    );
-    draggedItem = null; // 清除当前拖动的节点
+    addHandleNode(x, y, new Date().getTime(), shape, img, width, name, path);
+    store.clearDraggedItem(); 
   }
 };
 
 //添加节点到画布上
-const addHandleNode = (x, y, id, shape, image, width, name) => {
+const addHandleNode = (x, y, id, shape, image, width, name, path) => {
+  const attrs = {
+    body: {
+      stroke: "#ffa940",
+      fill: "#ffd591",
+    },
+    label: {
+      textWrap: {
+        width: 90,
+        text: name,
+      },
+      fill: "black",
+      fontSize: 12,
+      refX: 0.5,
+      refY: 0.5,
+      refY2: -4,
+      textAnchor: "middle",
+      textVerticalAnchor: "top",
+    },
+  };
+
+  // 如果有 path 属性，直接添加到 attrs 中 --针对svg图形
+  if (path) {
+    attrs.path = {
+      d: path, // 假设 path 是一个 SVG 路径数据字符串
+      fill: "#ffd591",
+      stroke: "#ffa940",
+      strokeWidth: 2,
+    };
+    attrs.viewBox = {
+      minX: 0,
+      minY: 0,
+      width: width,
+      height: 30
+    };
+  }
+
   graph.value.addNode({
     id: id,
     shape: shape,
@@ -90,30 +93,11 @@ const addHandleNode = (x, y, id, shape, image, width, name) => {
     width: width,
     height: 60,
     imageUrl: image,
-    attrs: {
-      body: {
-        stroke: "#ffa940",
-        fill: "#ffd591",
-      },
-      label: {
-        textWrap: {
-          width: 90,
-          text: name,
-        },
-        fill: "black",
-        fontSize: 12,
-        refX: 0.5,
-        refY: 0.5,
-        refY2: -4,
-        textAnchor: "middle",
-        textVerticalAnchor: "top",
-      },
-    },
+    attrs: attrs,
     ports: {
       groups: {
         group1: {
-          position: [width/2, 30], // 节点标志定位
-          // args: { x: '50%', y: '50%' } // 居中位置
+          position: [width / 2, 30], // 节点标志定位
         },
       },
       items: [
@@ -135,6 +119,20 @@ const addHandleNode = (x, y, id, shape, image, width, name) => {
     zIndex: 10,
   });
 };
+
+
+//添加边到画布上
+// const addEdge = (sourceId, targetId) => {
+//   graph.value.addEdge({
+//     source: { cell: sourceId },
+//     target: { cell: targetId },
+//     attrs: {
+//       label: {
+//         text: 'custom label', // 自定义标签文本
+//       },
+//     },
+//   });
+// };
 
 //编辑节点标签
 const editNodeLabel = (node) => {
@@ -165,6 +163,39 @@ const editNodeLabel = (node) => {
         },
       },
     });
+    document.body.removeChild(input);
+  };
+
+  input.onkeydown = (e) => {
+    if (e.key === "Enter") {
+      input.blur();
+    }
+  };
+};
+
+// 编辑边的标签
+const editEdgeLabel = (edge) => {
+  const currentLabel = edge.getLabels()[0]?.attrs?.label?.text || ""; // 获取当前标签文本
+  const input = document.createElement("input");
+  input.value = currentLabel;
+
+  const edgePosition = edge.getSourcePoint(); // 获取边的起点位置
+  const containerRect = document
+    .querySelector(".canvas-card")
+    .getBoundingClientRect();
+
+  input.style.position = "absolute";
+  input.style.left = `${edgePosition.x + containerRect.left - input.offsetWidth / 2 + 180}px`; // 调整left值
+  input.style.top = `${edgePosition.y + containerRect.top}px`; // 调整top值
+  input.style.zIndex = 1000;
+  input.style.width = "100px"; // 可以根据需要调整输入框的宽度
+  input.style.fontSize = "12px"; // 确保字体大小与标签一致
+  document.body.appendChild(input);
+
+  input.focus();
+
+  input.onblur = () => {
+    edge.setLabels([input.value]); // 使用语法糖直接设置标签文本
     document.body.removeChild(input);
   };
 
@@ -255,12 +286,16 @@ const nodeAddEvent = () => {
       ]);
     }
   });
-
+//右键修改节点名和边名
   graph.value.on("node:contextmenu", ({ node }) => {
     editNodeLabel(node);
   });
 
-  // 连线绑定悬浮事件
+  graph.value.on("edge:contextmenu", ({ edge }) => {
+    editEdgeLabel(edge);
+  });
+
+  // 连线绑定悬浮事件，鼠标进入可以删除节点间连线
   graph.value.on("cell:mouseenter", ({ cell }) => {
     if (cell.shape === "edge") {
       cell.addTools([
@@ -327,8 +362,9 @@ const initGraph = () => {
       restrict: true, //节点移动时不可以移出画布
     },
     connecting: {
+      //连接规则
       snap: true,
-      allowBlank: false,
+      allowBlank: true,
       allowMulti: true,
       allowLoop: false, // 禁止创建循环连线
       highlight: true,
@@ -352,6 +388,18 @@ const initGraph = () => {
           radius: 8,
         },
       },
+      createEdge() {
+        return graph.value.createEdge({
+          shape: "edge",
+          label: "label",
+          attrs: {
+            line: {
+              stroke: "#8f8f8f",
+              strokeWidth: 1,
+            },
+          },
+        });
+      },
     },
     panning: {
       enabled: false,
@@ -364,6 +412,7 @@ const initGraph = () => {
       maxScale: 3,
     },
   });
+  store.setGraph(graph.value);// 将 graph 实例存储到全局状态
   nodeAddEvent();
 };
 
@@ -380,40 +429,13 @@ onMounted(() => {
     height: 100%;
     color: black;
     padding-top: 5px;
-    .menu-list {
-      height: 100%;
-      width: 150px;
-      padding: 0 10px;
-      box-sizing: border-box;
-      display: flex;
-      justify-content: space-between;
-      align-content: flex-start;
-      flex-wrap: wrap;
-      > div {
-        margin-bottom: 10px;
-        border-radius: 5px;
-        padding: 0 10px;
-        box-sizing: border-box;
-        cursor: pointer;
-        color: black;
-        width: 105px;
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        img {
-          height: 50px;
-          width: 50px;
-        }
-        p {
-          width: 90px;
-          text-align: center;
-        }
-      }
-    }
+
     .canvas-card {
-      width: 1700px;
+      margin-left: 160px; // 为了避免侧边栏覆盖，画布左边留出足够的空间
+      width: calc(100% - 160px); // 减去侧边栏的宽度
       height: 600px;
       box-sizing: border-box;
+
       > div {
         width: 100%;
         height: 100%;

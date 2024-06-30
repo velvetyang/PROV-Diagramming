@@ -11,11 +11,14 @@
   },
   "dependencies": {
     "@antv/x6": "^2.18.1",
+    "@antv/x6-plugin-export": "^2.1.6",
     "@antv/x6-vue-shape": "^2.1.2",
     "@element-plus/icons-vue": "^2.3.1",
     "element-plus": "^2.6.2",
     "mxgraph": "^4.2.2",
     "mxgraph-factory": "^4.2.0",
+    "pinia": "^2.1.7",
+    "uuid": "^10.0.0",
     "vue": "^3.4.21",
     "vue-router": "^4.3.2",
     "vuedraggable": "^4.1.0"
