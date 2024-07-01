@@ -2,27 +2,19 @@
 import { toggleDark } from "~/composables";
 import { Graph } from "@antv/x6";
 import { useMainStore } from "~/store/index.js";
+import { sendDataToServer } from '~/store/api.js';
 
 const store = useMainStore();
 
-function downloadJSON(data, filename) {
-  const json = JSON.stringify(data, null, 2); // 格式化 JSON 字符串
-  const blob = new Blob([json], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  link.click();
- 
-
-  URL.revokeObjectURL(url); // 释放 URL 对象
-}
-
-const exportJSON = () => {
+const exportJSON = async() => {
   if (store.graph) {
-    console.log(store.graph.toJSON(), 'graph');
-    downloadJSON(store.graph.toJSON(),"graph.json");
+    const graphData = store.graph.toJSON(); // 定义 graphData
+    console.log(graphData, 'graph');
+
+    const downloadUrl = await sendDataToServer(graphData); 
+    if (downloadUrl) {
+      window.location.href = downloadUrl; // 触发下载
+    }
   } else {
     console.error('Graph is not initialized');
   }

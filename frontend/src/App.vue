@@ -21,6 +21,7 @@ import { useMainStore } from '~/store/index.js';
 
 const pinia = createPinia();
 useMainStore(pinia);
+
 </script>
 
 <style>
