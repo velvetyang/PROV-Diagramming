@@ -8,25 +8,16 @@
   </div>
 </template>
 
-<script setup>  
+<script setup>
 import { ref, onMounted } from "vue";
 import { useMainStore } from "~/store/index.js";
-import { Graph } from "@antv/x6"
+import { Graph, Registry } from "@antv/x6";
 
 const store = useMainStore();
 
 const moduleList = store.moduleList;
 const graph = ref(null);
 const curSelectNode = ref(null);
-
-const handleDragStart = (e, item) => {
-  store.setDraggedItem( item ); 
-};
-
-
-const handleDragEnd = (e, item) => {
-  store.clearDraggedItem();
-};
 
 const handleDragOver = (e) => {
   e.preventDefault(); // 必须阻止默认行为以启用放置
@@ -43,21 +34,22 @@ const handleDrop = (e) => {
     const { shape, img, width, name, path } = store.draggedItem;
 
     addHandleNode(x, y, new Date().getTime(), shape, img, width, name, path);
-    store.clearDraggedItem(); 
+    store.clearDraggedItem();
   }
 };
 
 //添加节点到画布上
 const addHandleNode = (x, y, id, shape, image, width, name, path) => {
+  const nodeName = store.generateNodeName(name);
   const attrs = {
     body: {
-      stroke: "#ffa940",
-      fill: "#ffd591",
+      stroke: shape === 'rect' ? 'blue' : shape === 'ellipse' ? '#808080' : '#ffa940',
+      fill: shape === 'rect' ? '#9FB1FC' : shape === 'ellipse' ? '#FFFC87' : '#ffd591',
     },
     label: {
       textWrap: {
         width: 90,
-        text: name,
+        text: nodeName,
       },
       fill: "black",
       fontSize: 12,
@@ -68,22 +60,24 @@ const addHandleNode = (x, y, id, shape, image, width, name, path) => {
       textVerticalAnchor: "top",
     },
   };
-
-  // 如果有 path 属性，直接添加到 attrs 中 --针对svg图形
+ // 如果有 path 属性，直接添加到 attrs 中 --针对svg图形
   if (path) {
     attrs.path = {
-      d: path, // 假设 path 是一个 SVG 路径数据字符串
-      fill: "#ffd591",
-      stroke: "#ffa940",
+      d: path,
+      fill: "#FED37F",
+      stroke: "#000000",
       strokeWidth: 2,
     };
     attrs.viewBox = {
       minX: 0,
       minY: 0,
       width: width,
-      height: 30
+      height: 30,
     };
   }
+
+  
+
 
   graph.value.addNode({
     id: id,
@@ -119,7 +113,6 @@ const addHandleNode = (x, y, id, shape, image, width, name, path) => {
     zIndex: 10,
   });
 };
-
 
 //添加边到画布上
 // const addEdge = (sourceId, targetId) => {
@@ -226,7 +219,7 @@ const nodeAddEvent = () => {
 
   // 节点绑定点击事件
   graph.value.on("node:click", ({ node }) => {
-    console.log("点击", node);
+    console.log("点击！！！", node);
     if (curSelectNode.value) {
       curSelectNode.value.removeTools();
       if (curSelectNode.value !== node) {
@@ -250,6 +243,13 @@ const nodeAddEvent = () => {
               offset: {
                 x: 0,
                 y: 0,
+              },
+              onClick: () => {
+                const nodeName = node.attr("label/textWrap/text");
+                const nodeType = nodeName.replace(/[0-9]/g, ""); // 提取类型名
+                store.resetCount(nodeType); // 重置计数器
+                graph.value.removeNode(node.id); // 使用 removeNode 函数删除节点
+                console.log(`Node ${node.id} removed.`);
               },
             },
           },
@@ -281,12 +281,19 @@ const nodeAddEvent = () => {
               x: 0,
               y: 0,
             },
+            onClick: () => {
+              const nodeName = node.attr("label/textWrap/text");
+              const nodeType = nodeName.replace(/[0-9]/g, ""); // 提取类型名
+              store.resetCount(nodeType); // 重置计数器
+              graph.value.removeNode(node.id); // 使用 removeNode 函数删除节点
+              console.log(`Node ${node.id} removed.`);
+            },
           },
         },
       ]);
     }
   });
-//右键修改节点名和边名
+  //右键修改节点名和边名
   graph.value.on("node:contextmenu", ({ node }) => {
     editNodeLabel(node);
   });
@@ -363,10 +370,16 @@ const initGraph = () => {
     },
     connecting: {
       //连接规则
+      connectionPoint: {
+      name: 'boundary',
+      args: {
+        extrapolate: true,
+      },
+    },
       snap: true,
       allowBlank: true,
       allowMulti: true,
-      allowLoop: false, // 禁止创建循环连线
+      allowLoop: false, // 不允许创建循环连线
       highlight: true,
       highlighting: {
         magnetAdsorbed: {
@@ -380,7 +393,10 @@ const initGraph = () => {
         },
       },
       router: {
-        name: "orth",
+        name: "manhattan",
+        args: {
+          fallbackRouter: Registry.Router.presets.er,
+        },
       },
       connector: {
         name: "rounded",
@@ -391,7 +407,20 @@ const initGraph = () => {
       createEdge() {
         return graph.value.createEdge({
           shape: "edge",
-          label: "label",
+          labels: [
+            {
+              attrs: {
+                label: {
+                  text: "label",
+                  fill: "#000000",
+                },
+              },
+              position: {
+                distance: 0.5, // Position at the middle of the edge
+                offset: { x: -10, y: -20 }, // Offset the label slightly above the edge
+              },
+            },
+          ],
           attrs: {
             line: {
               stroke: "#8f8f8f",
@@ -412,12 +441,27 @@ const initGraph = () => {
       maxScale: 3,
     },
   });
-  store.setGraph(graph.value);// 将 graph 实例存储到全局状态
+  store.setGraph(graph.value); // 将 graph 实例存储到全局状态
   nodeAddEvent();
+};
+
+//加载并显示初始JSON文件内容
+const loadInitialGraph = async () => {
+  try {
+    const response = await fetch("/origin.json");
+    if (!response.ok) {
+      throw new Error("Failed to load origin.json");
+    }
+    const data = await response.json();
+    graph.value.fromJSON(data);
+  } catch (error) {
+    console.error("Error loading initial graph:", error);
+  }
 };
 
 onMounted(() => {
   initGraph();
+  loadInitialGraph(); // 加载并显示初始JSON文件内容
 });
 </script>
 

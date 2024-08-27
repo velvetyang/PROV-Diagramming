@@ -1,0 +1,304 @@
+{
+  "cells": [
+    {
+      "shape": "edge",
+      "attrs": {
+        "line": {
+          "stroke": "black",
+          "strokeWidth": 1
+        }
+      },
+      "id": "6e8c0b0e-3c47-4941-a47a-b15460f812a9",
+      "labels": [
+        "wasAttributedTo"
+      ],
+      "source": {
+        "cell": 1724625115645,
+        "port": "port1"
+      },
+      "target": {
+        "cell": 1724625104306
+      },
+      "zIndex": 1
+    },
+    {
+      "shape": "edge",
+      "attrs": {
+        "line": {
+          "stroke": "black",
+          "strokeWidth": 1
+        }
+      },
+      "id": "afa5d296-fe45-4623-9d5a-4af13551e820",
+      "labels": [
+        "wasAssociatedWith"
+      ],
+      "source": {
+        "cell": 1724625161212,
+        "port": "port1"
+      },
+      "target": {
+        "cell": 1724625115645
+      },
+      "zIndex": 1
+    },
+    {
+      "shape": "edge",
+      "attrs": {
+        "line": {
+          "stroke": "black",
+          "strokeWidth": 1
+        }
+      },
+      "id": "930cc75d-c49c-4380-a8ba-f72ac7cf36cf",
+      "labels": [
+        "used"
+      ],
+      "source": {
+        "cell": 1724625161212,
+        "port": "port1"
+      },
+      "target": {
+        "cell": 1724625104306
+      },
+      "zIndex": 1
+    },
+    {
+      "shape": "edge",
+      "attrs": {
+        "line": {
+          "stroke": "black",
+          "strokeWidth": 1
+        }
+      },
+      "id": "4d2e4524-973c-46d7-8a49-64a7f2b5c94b",
+      "labels": [
+        "wasGeneratedBy"
+      ],
+      "source": {
+        "cell": 1724625104306,
+        "port": "port1"
+      },
+      "target": {
+        "cell": 1724625161212
+      },
+      "zIndex": 1
+    },
+    {
+      "position": {
+        "x": 360,
+        "y": 90
+      },
+      "size": {
+        "width": 150,
+        "height": 60
+      },
+      "attrs": {
+        "body": {
+          "stroke": "#808080",
+          "fill": "#FFFC87"
+        },
+        "label": {
+          "textWrap": {
+            "width": 90,
+            "text": "entity1"
+          },
+          "fill": "black",
+          "fontSize": 12,
+          "refX": 0.5,
+          "refY": 0.5,
+          "refY2": -4,
+          "textAnchor": "middle",
+          "textVerticalAnchor": "top"
+        }
+      },
+      "visible": true,
+      "shape": "ellipse",
+      "id": 1724625104306,
+      "imageUrl": "http://localhost:5173/src/assets/ellipse.svg",
+      "zIndex": 10,
+      "ports": {
+        "groups": {
+          "group1": {
+            "position": [
+              75,
+              30
+            ]
+          }
+        },
+        "items": [
+          {
+            "group": "group1",
+            "id": "port1",
+            "attrs": {
+              "circle": {
+                "r": 6,
+                "magnet": true,
+                "stroke": "#ffffff",
+                "strokeWidth": 2,
+                "fill": "#5F95FF"
+              }
+            }
+          }
+        ]
+      },
+      "tools": {
+        "items": [
+          {
+            "name": "boundary",
+            "args": {
+              "attrs": {
+                "fill": "#16B8AA",
+                "stroke": "#2F80EB",
+                "strokeWidth": 1,
+                "fillOpacity": 0.1
+              }
+            }
+          },
+          {
+            "name": "button-remove",
+            "args": {
+              "x": "100%",
+              "y": 0,
+              "offset": {
+                "x": 0,
+                "y": 0
+              }
+            }
+          }
+        ],
+        "name": null
+      }
+    },
+    {
+      "position": {
+        "x": 630,
+        "y": 320
+      },
+      "size": {
+        "width": 100,
+        "height": 60
+      },
+      "attrs": {
+        "body": {
+          "fill": "#ffd591",
+          "stroke": "#ffa940"
+        },
+        "label": {
+          "textWrap": {
+            "width": 90,
+            "text": "agent1"
+          },
+          "fill": "black",
+          "fontSize": 12,
+          "refX": 0.5,
+          "refY": 0.5,
+          "refY2": -4,
+          "textAnchor": "middle",
+          "textVerticalAnchor": "top"
+        },
+        "path": {
+          "d": "M -30 20 L 50 -20 L 130 20 V 50 H -30 Z",
+          "fill": "#FED37F",
+          "stroke": "#000000",
+          "strokeWidth": 2
+        },
+        "viewBox": {
+          "minX": 0,
+          "minY": 0,
+          "width": 100,
+          "height": 30
+        }
+      },
+      "visible": true,
+      "shape": "path",
+      "id": 1724625115645,
+      "imageUrl": "http://localhost:5173/src/assets/agent.svg",
+      "zIndex": 10,
+      "ports": {
+        "groups": {
+          "group1": {
+            "position": [
+              50,
+              30
+            ]
+          }
+        },
+        "items": [
+          {
+            "group": "group1",
+            "id": "port1",
+            "attrs": {
+              "circle": {
+                "r": 6,
+                "magnet": true,
+                "stroke": "#ffffff",
+                "strokeWidth": 2,
+                "fill": "#5F95FF"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "position": {
+        "x": 90,
+        "y": 320
+      },
+      "size": {
+        "width": 100,
+        "height": 60
+      },
+      "attrs": {
+        "body": {
+          "stroke": "blue",
+          "fill": "#9FB1FC"
+        },
+        "label": {
+          "textWrap": {
+            "width": 90,
+            "text": "activity1"
+          },
+          "fill": "black",
+          "fontSize": 12,
+          "refX": 0.5,
+          "refY": 0.5,
+          "refY2": -4,
+          "textAnchor": "middle",
+          "textVerticalAnchor": "top"
+        }
+      },
+      "visible": true,
+      "shape": "rect",
+      "id": 1724625161212,
+      "imageUrl": "http://localhost:5173/src/assets/rect.svg",
+      "zIndex": 10,
+      "ports": {
+        "groups": {
+          "group1": {
+            "position": [
+              50,
+              30
+            ]
+          }
+        },
+        "items": [
+          {
+            "group": "group1",
+            "id": "port1",
+            "attrs": {
+              "circle": {
+                "r": 6,
+                "magnet": true,
+                "stroke": "#ffffff",
+                "strokeWidth": 2,
+                "fill": "#5F95FF"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
