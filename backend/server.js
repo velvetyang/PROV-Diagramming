@@ -3,7 +3,10 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
-const { trimGraphData } = require('./trimData'); // 引入修剪模块
+const {
+  trimGraphData,
+  transformData
+} = require('./trimData'); // 引入修剪模块
 const app = express();
 const port = 3000;
 
@@ -18,21 +21,25 @@ app.get('/', (req, res) => {
   res.send('Welcome to the Graph API server!');
 });
 
-
-
 // 定义一个路由来接收 JSON 数据并保存为文件
 app.post('/upload', (req, res) => {
   const graphData = req.body;
   console.log('Received graph data:');
   console.log(JSON.stringify(graphData, null, 2));
 
-  // 修剪不需要的属性
+  // 修剪数据
   const trimmedGraphData = trimGraphData(graphData);
-  console.log('Trimmed graph data:');
-  console.log(JSON.stringify(trimmedGraphData, null, 2));
+  console.log('Trimmed graph data');
+ 
+  // 转换数据结构
+  const transformedGraphData = transformData(trimmedGraphData);
+  console.log('Transformed graph data:');
+  console.log(JSON.stringify(transformedGraphData, null, 2));
+
+  
 
   // 将修剪后的数据保存为 JSON 文件
-  const jsonContent = JSON.stringify(trimmedGraphData, null, 2);
+  const jsonContent = JSON.stringify(transformedGraphData, null, 2);
   const filePath = path.join(__dirname, 'graphData.json');
 
   fs.writeFile(filePath, jsonContent, 'utf8', (err) => {
@@ -43,7 +50,10 @@ app.post('/upload', (req, res) => {
     console.log('JSON file has been saved.');
 
     // 返回下载链接
-    res.send({ message: 'Graph data received and trimmed successfully!', downloadUrl: `http://localhost:${port}/download` });
+    res.send({
+      message: 'Graph data received and trimmed successfully!',
+      downloadUrl: `http://localhost:${port}/download`
+    });
   });
 });
 

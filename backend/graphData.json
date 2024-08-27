@@ -1,144 +1,60 @@
 {
-  "cells": [
-    {
-      "shape": "edge",
-      "attrs": {
-        "line": {
-          "stroke": "black",
-          "strokeWidth": 1
-        }
-      },
-      "id": "6718ee5e-55f3-489c-b9ff-317365920c00",
-      "labels": [
-        {
-          "attrs": {
-            "label": {
-              "text": "label"
-            }
-          }
-        }
-      ],
-      "source": {
-        "cell": 1719795683640,
-        "port": "port1"
-      },
-      "target": {
-        "cell": 1719795684703
-      }
-    },
-    {
-      "position": {
-        "x": 226,
-        "y": 94
-      },
-      "size": {
-        "width": 100,
-        "height": 60
-      },
-      "attrs": {
-        "body": {
-          "stroke": "#ffa940",
-          "fill": "#ffd591"
-        },
-        "label": {
-          "textWrap": {
-            "width": 90,
-            "text": "Activity"
-          },
-          "fill": "black",
-          "fontSize": 12,
-          "refX": 0.5,
-          "refY": 0.5,
-          "refY2": -4,
-          "textAnchor": "middle",
-          "textVerticalAnchor": "top"
-        }
-      },
-      "visible": true,
-      "shape": "rect",
-      "id": 1719795683640,
-      "ports": {
-        "groups": {
-          "group1": {
-            "position": [
-              50,
-              30
-            ]
-          }
-        },
-        "items": [
-          {
-            "group": "group1",
-            "id": "port1",
-            "attrs": {
-              "circle": {
-                "r": 6,
-                "magnet": true,
-                "stroke": "#ffffff",
-                "strokeWidth": 2,
-                "fill": "#5F95FF"
-              }
-            }
-          }
-        ]
-      }
-    },
-    {
-      "position": {
-        "x": 514,
-        "y": 175
-      },
-      "size": {
-        "width": 150,
-        "height": 60
-      },
-      "attrs": {
-        "body": {
-          "stroke": "#ffa940",
-          "fill": "#ffd591"
-        },
-        "label": {
-          "textWrap": {
-            "width": 90,
-            "text": "Entity"
-          },
-          "fill": "black",
-          "fontSize": 12,
-          "refX": 0.5,
-          "refY": 0.5,
-          "refY2": -4,
-          "textAnchor": "middle",
-          "textVerticalAnchor": "top"
-        }
-      },
-      "visible": true,
-      "shape": "ellipse",
-      "id": 1719795684703,
-      "ports": {
-        "groups": {
-          "group1": {
-            "position": [
-              75,
-              30
-            ]
-          }
-        },
-        "items": [
-          {
-            "group": "group1",
-            "id": "port1",
-            "attrs": {
-              "circle": {
-                "r": 6,
-                "magnet": true,
-                "stroke": "#ffffff",
-                "strokeWidth": 2,
-                "fill": "#5F95FF"
-              }
-            }
-          }
-        ]
+  "prefix": {
+    "s": "http://schema.org/",
+    "ex": "http://example.com/"
+  },
+  "entity": {
+    "ex:activity1": {
+      "prov:label": {},
+      "prov:type": {
+        "type": "prov:QUALIFIED_NAME"
       }
     }
-  ]
+  },
+  "activity": {
+    "ex:entity1": {
+      "prov:label": {},
+      "prov:type": {
+        "type": "prov:QUALIFIED_NAME"
+      }
+    },
+    "ex:entity2": {
+      "prov:label": {},
+      "prov:type": {
+        "type": "prov:QUALIFIED_NAME"
+      }
+    }
+  },
+  "agent": {
+    "ex:agent1": {
+      "prov:label": {},
+      "prov:type": {
+        "type": "prov:QUALIFIED_NAME"
+      }
+    }
+  },
+  "wasGeneratedBy": {
+    "_:id1": {
+      "prov:activity": "ex:entity1",
+      "prov:entity": "ex:activity1"
+    }
+  },
+  "used": {
+    "_:id2": {
+      "prov:activity": "ex:activity1",
+      "prov:entity": "ex:entity1"
+    }
+  },
+  "wasAttributedTo": {
+    "_:id3": {
+      "prov:entity": "ex:agent1",
+      "prov:agent": "ex:entity1"
+    }
+  },
+  "wasAssociatedWith": {
+    "_:id4": {
+      "prov:activity": "ex:activity1",
+      "prov:entity": "ex:agent1"
+    }
+  }
 }
