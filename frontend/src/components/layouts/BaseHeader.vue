@@ -6,6 +6,25 @@ import { sendDataToServer } from '~/store/api.js';
 
 const store = useMainStore();
 
+const saveToLocalStorage = () => {
+  if (store.graph) {
+    const graphData = store.graph.toJSON(); // 获取当前画布的数据
+    localStorage.setItem('savedGraphData', JSON.stringify(graphData)); // 保存到 localStorage
+    console.log('Graph data saved to localStorage.');
+  } else {
+    console.error('Graph is not initialized');
+  }
+};
+const recoverFromLocalStorage = () => {
+  const savedGraphData = localStorage.getItem('savedGraphData');
+  if (savedGraphData) {
+    const graphData = JSON.parse(savedGraphData);
+    store.graph.fromJSON(graphData); // 加载并显示保存的 graphData
+    console.log('Graph data recovered from localStorage.');
+  } else {
+    console.error('No saved graph data found in localStorage');
+  }
+};
 const exportJSON = async() => {
   if (store.graph) {
     const graphData = store.graph.toJSON(); // 定义 graphData
@@ -32,8 +51,8 @@ const exportJSON = async() => {
         <el-menu-item index="2-1-2">PNG</el-menu-item>
         <el-menu-item index="2-1-3">SVG</el-menu-item>
       </el-sub-menu>
-      <el-menu-item index="2-2">Save</el-menu-item>
-      <el-menu-item index="2-3">Recover Last Session </el-menu-item>
+      <el-menu-item index="2-2" @click="saveToLocalStorage">Save</el-menu-item>
+      <el-menu-item index="2-3" @click="recoverFromLocalStorage">Recover Last Session </el-menu-item>
     </el-sub-menu>
     <el-menu-item index="3"><a href="https://www.w3.org/TR/prov-overview/" target="_blank" style="text-decoration: none; color: inherit;">Help</a></el-menu-item>
     <el-menu-item h="full" @click="toggleDark()">
