@@ -12,6 +12,7 @@
 import { ref, onMounted } from "vue";
 import { useMainStore } from "~/store/index.js";
 import { Graph, Registry } from "@antv/x6";
+import { ElMessage } from "element-plus";
 
 const store = useMainStore();
 
@@ -43,13 +44,20 @@ const addHandleNode = (x, y, id, shape, image, width, name, path) => {
   const nodeName = store.generateNodeName(name);
   const attrs = {
     body: {
-      stroke: shape === 'rect' ? 'blue' : shape === 'ellipse' ? '#808080' : '#ffa940',
-      fill: shape === 'rect' ? '#9FB1FC' : shape === 'ellipse' ? '#FFFC87' : '#ffd591',
+      stroke:
+        shape === "rect" ? "blue" : shape === "ellipse" ? "#808080" : "#ffa940",
+      fill:
+        shape === "rect"
+          ? "#9FB1FC"
+          : shape === "ellipse"
+            ? "#FFFC87"
+            : "#ffd591",
     },
     label: {
       textWrap: {
         width: 90,
         text: nodeName,
+        ellipsis: true,
       },
       fill: "black",
       fontSize: 12,
@@ -60,7 +68,7 @@ const addHandleNode = (x, y, id, shape, image, width, name, path) => {
       textVerticalAnchor: "top",
     },
   };
- // 如果有 path 属性，直接添加到 attrs 中 --针对svg图形
+  // 如果有 path 属性，直接添加到 attrs 中 --针对svg图形
   if (path) {
     attrs.path = {
       d: path,
@@ -75,9 +83,6 @@ const addHandleNode = (x, y, id, shape, image, width, name, path) => {
       height: 30,
     };
   }
-
-  
-
 
   graph.value.addNode({
     id: id,
@@ -114,89 +119,259 @@ const addHandleNode = (x, y, id, shape, image, width, name, path) => {
   });
 };
 
-//添加边到画布上
-// const addEdge = (sourceId, targetId) => {
-//   graph.value.addEdge({
-//     source: { cell: sourceId },
-//     target: { cell: targetId },
-//     attrs: {
-//       label: {
-//         text: 'custom label', // 自定义标签文本
-//       },
-//     },
-//   });
-// };
+
 
 //编辑节点标签
-const editNodeLabel = (node) => {
+const editNodeLabelAndContent = (node) => {
   const currentLabel = node.attr("label/textWrap/text");
-  const input = document.createElement("input");
-  input.value = currentLabel;
+  const currentContent =
+    node.attr("label/textWrap/anotherText") || 'Enter your attribute here like:\n "prov:startTime": "2011-11-16T16:05:00",\n "prov:endTime": "2011-11-16T16:06:00",\n "type": "xsd:QName",\n "ex:port": "p1", '; // 假设你有另一个属性
 
-  const nodePosition = node.position();
-  const labelAttrs = node.attr("label");
-  const labelX = labelAttrs.refX * node.size().width + 80;
-  const labelY = labelAttrs.refY * node.size().height;
+  // 创建第一个对话框用于编辑节点名
+  const dialog1 = document.createElement("div");
+  dialog1.style.position = "absolute";
+  dialog1.style.left = `${node.position().x}px`;
+  dialog1.style.top = `${node.position().y}px`;
+  dialog1.style.zIndex = 1000;
+  dialog1.style.backgroundColor = "white";
+  dialog1.style.border = "1px solid #ccc";
+  dialog1.style.padding = "10px";
+  dialog1.style.boxShadow = "0 2px 10px rgba(0,0,0,0.1)";
 
-  input.style.position = "absolute";
-  input.style.left = `${nodePosition.x + labelX - input.offsetWidth / 2}px`; // 调整left值
-  input.style.top = `${nodePosition.y + labelY}px`; // 调整top值
-  input.style.zIndex = 1000;
-  input.style.width = "100px"; // 可以根据需要调整输入框的宽度
-  input.style.fontSize = "12px"; // 确保字体大小与节点标签一致
-  document.body.appendChild(input);
+  // 添加关闭按钮
+  const closeButton1 = document.createElement("button");
+  closeButton1.textContent = "X";
+  closeButton1.style.position = "absolute";
+  closeButton1.style.right = "10px";
+  closeButton1.style.bottom = "10px";
+  closeButton1.style.cursor = "pointer";
+  closeButton1.onclick = () => {
+    document.body.removeChild(dialog1);
+    document.body.removeChild(dialog2);
+    document.removeEventListener("click", handleClickOutside1);
+    document.removeEventListener("click", handleClickOutside2);
+  };
 
-  input.focus();
+  const input1 = document.createElement("input");
+  input1.value = currentLabel;
+  input1.style.display = "block";
+  input1.style.marginBottom = "10px";
 
-  input.onblur = () => {
+  const saveButton1 = document.createElement("button");
+  saveButton1.textContent = "Save";
+  saveButton1.onclick = () => {
     node.setAttrs({
       label: {
         textWrap: {
-          text: input.value,
+          text: input1.value,
         },
       },
     });
-    document.body.removeChild(input);
+    document.body.removeChild(dialog1);
+    document.body.removeChild(dialog2);
+    document.removeEventListener("click", handleClickOutside1);
+    document.removeEventListener("click", handleClickOutside2);
   };
 
-  input.onkeydown = (e) => {
-    if (e.key === "Enter") {
-      input.blur();
+  dialog1.appendChild(input1);
+  dialog1.appendChild(saveButton1);
+  dialog1.appendChild(closeButton1);
+  document.body.appendChild(dialog1);
+
+  input1.focus();
+
+  const handleClickOutside1 = (event) => {
+    if (!dialog1.contains(event.target)) {
+      document.body.removeChild(dialog1);
+      document.body.removeChild(dialog2);
+      document.removeEventListener("click", handleClickOutside1);
+      document.removeEventListener("click", handleClickOutside2);
     }
   };
+
+  document.addEventListener("click", handleClickOutside1);
+
+  // 创建第二个对话框用于编辑更多内容
+  const dialog2 = document.createElement("div");
+  dialog2.style.position = "absolute";
+  dialog2.style.left = `${node.position().x + 200}px`; // 调整位置避免重叠
+  dialog2.style.top = `${node.position().y + 50}px`; // 调整位置避免重叠
+  dialog2.style.zIndex = 1000;
+  dialog2.style.backgroundColor = "white";
+  dialog2.style.border = "1px solid #ccc";
+  dialog2.style.padding = "10px";
+  dialog2.style.boxShadow = "0 2px 10px rgba(0,0,0,0.1)";
+  dialog2.style.width = "300px"; // 设置较大的宽度
+  dialog2.style.height = "200px"; // 设置较大的高度
+
+  const textarea = document.createElement("textarea");
+  textarea.value = currentContent;
+  textarea.style.width = "100%";
+  textarea.style.height = "80%";
+  textarea.style.display = "block";
+  textarea.style.marginBottom = "10px";
+
+  const saveButton2 = document.createElement("button");
+  saveButton2.textContent = "Save";
+  saveButton2.onclick = () => {
+    node.setAttrs({
+      label: {
+        textWrap: {
+          anotherText: textarea.value, // 假设你有另一个属性
+        },
+      },
+    });
+    document.body.removeChild(dialog2);
+    document.removeEventListener("click", handleClickOutside2);
+  };
+
+  dialog2.appendChild(textarea);
+  dialog2.appendChild(saveButton2);
+  document.body.appendChild(dialog2);
+
+  textarea.focus();
+
+  const handleClickOutside2 = (event) => {
+    if (!dialog2.contains(event.target)) {
+      document.body.removeChild(dialog2);
+      document.removeEventListener("click", handleClickOutside2);
+    }
+  };
+
+  document.addEventListener("click", handleClickOutside2);
+
+  // 阻止事件冒泡
+  dialog1.addEventListener("click", (e) => e.stopPropagation());
+  dialog2.addEventListener("click", (e) => e.stopPropagation());
 };
 
 // 编辑边的标签
 const editEdgeLabel = (edge) => {
   const currentLabel = edge.getLabels()[0]?.attrs?.label?.text || ""; // 获取当前标签文本
-  const input = document.createElement("input");
-  input.value = currentLabel;
+  const currentContent =
+    edge.getLabels()[0]?.attrs?.label?.anotherText || 'Enter your attribute here like:\n "prov:startTime": "2011-11-16T16:05:00",\n "prov:endTime": "2011-11-16T16:06:00",\n "type": "xsd:QName",\n "ex:port": "p1", '; // 假设你有另一个属性
 
-  const edgePosition = edge.getSourcePoint(); // 获取边的起点位置
-  const containerRect = document
-    .querySelector(".canvas-card")
-    .getBoundingClientRect();
+  // 创建第一个对话框用于编辑标签名
+  const dialog1 = document.createElement("div");
+  dialog1.style.position = "absolute";
+  dialog1.style.left = `${edge.getSourcePoint().x}px`;
+  dialog1.style.top = `${edge.getSourcePoint().y}px`;
+  dialog1.style.zIndex = 1000;
+  dialog1.style.backgroundColor = "white";
+  dialog1.style.border = "1px solid #ccc";
+  dialog1.style.padding = "10px";
+  dialog1.style.boxShadow = "0 2px 10px rgba(0,0,0,0.1)";
 
-  input.style.position = "absolute";
-  input.style.left = `${edgePosition.x + containerRect.left - input.offsetWidth / 2 + 180}px`; // 调整left值
-  input.style.top = `${edgePosition.y + containerRect.top}px`; // 调整top值
-  input.style.zIndex = 1000;
-  input.style.width = "100px"; // 可以根据需要调整输入框的宽度
-  input.style.fontSize = "12px"; // 确保字体大小与标签一致
-  document.body.appendChild(input);
-
-  input.focus();
-
-  input.onblur = () => {
-    edge.setLabels([input.value]); // 使用语法糖直接设置标签文本
-    document.body.removeChild(input);
+  // 添加关闭按钮
+  const closeButton1 = document.createElement("button");
+  closeButton1.textContent = "X";
+  closeButton1.style.position = "absolute";
+  closeButton1.style.right = "10px";
+  closeButton1.style.bottom = "10px";
+  closeButton1.style.cursor = "pointer";
+  closeButton1.onclick = () => {
+    document.body.removeChild(dialog1);
+    document.body.removeChild(dialog2);
+    document.removeEventListener("click", handleClickOutside1);
+    document.removeEventListener("click", handleClickOutside2);
   };
 
-  input.onkeydown = (e) => {
-    if (e.key === "Enter") {
-      input.blur();
+  const input1 = document.createElement("input");
+  input1.value = currentLabel;
+  input1.style.display = "block";
+  input1.style.marginBottom = "10px";
+
+  const saveButton1 = document.createElement("button");
+  saveButton1.textContent = "Save";
+  saveButton1.onclick = () => {
+    edge.setLabels([
+      {
+        attrs: {
+          label: {
+            text: input1.value,
+          },
+        },
+      },
+    ]);
+    document.body.removeChild(dialog1);
+    document.body.removeChild(dialog2);
+    document.removeEventListener("click", handleClickOutside1);
+    document.removeEventListener("click", handleClickOutside2);
+  };
+
+  dialog1.appendChild(input1);
+  dialog1.appendChild(saveButton1);
+  dialog1.appendChild(closeButton1);
+  document.body.appendChild(dialog1);
+
+  input1.focus();
+
+  const handleClickOutside1 = (event) => {
+    if (!dialog1.contains(event.target)) {
+      document.body.removeChild(dialog1);
+      document.body.removeChild(dialog2);
+      document.removeEventListener("click", handleClickOutside1);
+      document.removeEventListener("click", handleClickOutside2);
     }
   };
+
+  document.addEventListener("click", handleClickOutside1);
+
+  // 创建第二个对话框用于编辑更多内容
+  const dialog2 = document.createElement("div");
+  dialog2.style.position = "absolute";
+  dialog2.style.left = `${edge.getSourcePoint().x + 200}px`; // 调整位置避免重叠
+  dialog2.style.top = `${edge.getSourcePoint().y + 50}px`; // 调整位置避免重叠
+  dialog2.style.zIndex = 1000;
+  dialog2.style.backgroundColor = "white";
+  dialog2.style.border = "1px solid #ccc";
+  dialog2.style.padding = "10px";
+  dialog2.style.boxShadow = "0 2px 10px rgba(0,0,0,0.1)";
+  dialog2.style.width = "300px"; // 设置较大的宽度
+  dialog2.style.height = "200px"; // 设置较大的高度
+
+  const textarea = document.createElement("textarea");
+  textarea.value = currentContent;
+  textarea.style.width = "100%";
+  textarea.style.height = "80%";
+  textarea.style.display = "block";
+  textarea.style.marginBottom = "10px";
+
+  const saveButton2 = document.createElement("button");
+  saveButton2.textContent = "Save";
+  saveButton2.onclick = () => {
+    edge.setLabels([
+      {
+        attrs: {
+          label: {
+            text: input1.value,
+            anotherText: textarea.value, // 假设你有另一个属性
+          },
+        },
+      },
+    ]);
+    document.body.removeChild(dialog2);
+    document.removeEventListener("click", handleClickOutside2);
+  };
+
+  dialog2.appendChild(textarea);
+  dialog2.appendChild(saveButton2);
+  document.body.appendChild(dialog2);
+
+  textarea.focus();
+
+  const handleClickOutside2 = (event) => {
+    if (!dialog2.contains(event.target)) {
+      document.body.removeChild(dialog2);
+      document.removeEventListener("click", handleClickOutside2);
+    }
+  };
+
+  document.addEventListener("click", handleClickOutside2);
+
+  // 阻止事件冒泡
+  dialog1.addEventListener("click", (e) => e.stopPropagation());
+  dialog2.addEventListener("click", (e) => e.stopPropagation());
 };
 
 //鼠标移入节点再显示连接桩
@@ -295,7 +470,7 @@ const nodeAddEvent = () => {
   });
   //右键修改节点名和边名
   graph.value.on("node:contextmenu", ({ node }) => {
-    editNodeLabel(node);
+    editNodeLabelAndContent(node);
   });
 
   graph.value.on("edge:contextmenu", ({ edge }) => {
@@ -371,11 +546,11 @@ const initGraph = () => {
     connecting: {
       //连接规则
       connectionPoint: {
-      name: 'boundary',
-      args: {
-        extrapolate: true,
+        name: "boundary",
+        args: {
+          extrapolate: true,
+        },
       },
-    },
       snap: true,
       allowBlank: true,
       allowMulti: true,
@@ -455,7 +630,11 @@ const loadInitialGraph = async () => {
     const data = await response.json();
     graph.value.fromJSON(data);
   } catch (error) {
-    console.error("Error loading initial graph:", error);
+    ElMessage({
+      message: 'Error loading initial graph:${error.message}',
+      type: 'error',
+      plain: true,
+    });
   }
 };
 

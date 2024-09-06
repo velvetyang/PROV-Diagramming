@@ -17,12 +17,6 @@
       "prov:type": {
         "type": "prov:QUALIFIED_NAME"
       }
-    },
-    "ex:entity2": {
-      "prov:label": {},
-      "prov:type": {
-        "type": "prov:QUALIFIED_NAME"
-      }
     }
   },
   "agent": {

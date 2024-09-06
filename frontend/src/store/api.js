@@ -21,3 +21,26 @@ export async function sendDataToServer(data) {
     return null;
   }
 }
+export async function sendImageToServer(data) {
+  try {
+    const response = await fetch('http://localhost:3000/uploadImage', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      console.log('Image sent successfully!');
+      return result.downloadUrl; // 返回下载链接
+    } else {
+      console.error('Failed to send image');
+      return null;
+    }
+  } catch (error) {
+    console.error('Error sending image:', error);
+    return null;
+  }
+}

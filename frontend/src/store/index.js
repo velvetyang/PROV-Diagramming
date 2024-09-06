@@ -2,6 +2,7 @@
 import { defineStore } from 'pinia';
 import { Graph } from '@antv/x6';
 
+
 export const useMainStore = defineStore('main', {
   state: () => ({
     moduleList: [
