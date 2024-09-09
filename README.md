@@ -4,13 +4,14 @@
 # npm
 $ npm install
 ```
-### run
+## run
 
 ## frontend
+
 ```shell
 $ npm run dev
 ```
-## remember to $ cd frontend
+* remember to $ cd frontend
 
 ## backend
 ```shell
